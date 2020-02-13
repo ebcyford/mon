@@ -25,11 +25,11 @@ TODO: Determine format of image chips
       Must eventually be a numpy array
       
 """
-
 import argparse
 import cv2
 import numpy as np
 import os
+from tqdm import tqdm
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_OUT = os.path.join(BASE_DIR, 'prepped_chips')
@@ -52,7 +52,7 @@ IMG_SIZE = FLAGS.img_size
 
 if not os.path.exists(OUT_DIR): os.mkdir(OUT_DIR)
 
-for img in os.listdir(IN_DIR):
+for img in tqdm(os.listdir(IN_DIR)):
     img_name = img.split(".")[0]    
     in_path = os.path.join(IN_DIR, img)
     out_path = os.path.join(OUT_DIR, img_name)
