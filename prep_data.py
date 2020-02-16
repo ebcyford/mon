@@ -61,12 +61,12 @@ with h5py.File(IN_FILE, "r") as f_in:
 
             # Read each channel 
             red = f_in[img]['1_R']
-            blue = f_in[img]['2_G']
-            green = f_in[img]['3_B']
+            green = f_in[img]['2_G']
+            blue = f_in[img]['3_B']
             nir = f_in[img]['4_NIR']
 
             # Create numpy ndarray 
-            img_arr = np.c_[red, blue, green, nir]
+            img_arr = np.c_[red, green, blue, nir]
 
             # Resize 
             img_resized = cv2.resize(img_arr, (IMG_SIZE, IMG_SIZE), \
