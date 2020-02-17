@@ -65,6 +65,9 @@ with h5py.File(IN_FILE, "r") as f_in:
             blue = f_in[img]['3_B']
             nir = f_in[img]['4_NIR']
 
+            # Get classification
+            img_class = f_in[img].attrs['classification']
+
             # Create numpy ndarray 
             img_arr = np.c_[red, green, blue, nir]
 
@@ -91,6 +94,7 @@ with h5py.File(IN_FILE, "r") as f_in:
 
             for i in range(8):
                 grp = f_out.create_group("{}_{}".format(img_name, i))
+                grp.attrs['classification'] = img_class
                 for i in DATA_COLS: 
                     idx = DATA_COLS.index(i)
                     grp.create_dataset("{}".format(i), 
