@@ -49,7 +49,7 @@ IN_FILE = FLAGS.in_file
 OUT_FILE = FLAGS.out_file
 IMG_SIZE = FLAGS.img_size
 
-DATA_COLS = ["1_R", "2_G", "3_B",]
+DATA_COLS = ["1_R", "2_G", "3_B"]
 DT = np.dtype('uint8')
 
 if not os.path.exists(DATA_DIR): os.mkdir(DATA_DIR)
@@ -94,8 +94,8 @@ with h5py.File(IN_FILE, "r") as f_in:
             for i in range(8):
                 grp = f_out.create_group("{}_{}".format(img_name, i))
                 grp.attrs['classification'] = img_class
-                for i in DATA_COLS: 
-                    idx = DATA_COLS.index(i)
-                    grp.create_dataset("{}".format(i), 
-                                    data=imgs[idx][:, :, idx:idx+1], 
+                for j in DATA_COLS: 
+                    idx = DATA_COLS.index(j)
+                    grp.create_dataset("{}".format(j), 
+                                    data=imgs[i][:, :, idx:idx+1], 
                                     dtype=DT)
