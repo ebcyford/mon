@@ -49,7 +49,7 @@ IN_FILE = FLAGS.in_file
 OUT_FILE = FLAGS.out_file
 IMG_SIZE = FLAGS.img_size
 
-DATA_COLS = ["1_R", "2_G", "3_B","4_NIR"]
+DATA_COLS = ["1_R", "2_G", "3_B",]
 DT = np.dtype('uint8')
 
 if not os.path.exists(DATA_DIR): os.mkdir(DATA_DIR)
@@ -63,13 +63,12 @@ with h5py.File(IN_FILE, "r") as f_in:
             red = f_in[img]['1_R']
             green = f_in[img]['2_G']
             blue = f_in[img]['3_B']
-            nir = f_in[img]['4_NIR']
 
             # Get classification
             img_class = f_in[img].attrs['classification']
 
             # Create numpy ndarray 
-            img_arr = np.c_[red, green, blue, nir]
+            img_arr = np.c_[red, green, blue]
 
             # Resize 
             img_resized = cv2.resize(img_arr, (IMG_SIZE, IMG_SIZE), \
