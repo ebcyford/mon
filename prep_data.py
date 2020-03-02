@@ -40,8 +40,8 @@ parser.add_argument("--in_file", type=str,
                     help="H5 file to augment")
 parser.add_argument("--out_file", type=str, default=DEFAULT_OUT, 
                     help="output file of augmented chips [default:/data/training_data.h5")
-parser.add_argument("--img_size", type=int, default=64, 
-                    help="height of square image chip in pixels [default:64]")
+parser.add_argument("--img_size", type=int, default=80, 
+                    help="height of square image chip in pixels [default:80]")
 
 FLAGS = parser.parse_args()
 
