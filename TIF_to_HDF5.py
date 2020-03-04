@@ -37,15 +37,17 @@ DATA_COLS = ["1_R", "2_G", "3_B"]
 
 if not os.path.exists(DATA_DIR): os.mkdir(DATA_DIR)
 
-counter = 1
+counter = 0
 with h5py.File(OUT_FILE, "w") as f:
     for classification in CLASSIFICATIONS:
         for img in tqdm(os.listdir(os.path.join(IN_DIR, classification))):
             img_name = counter
             img_path = os.path.join(IN_DIR, classification, img)
             grp = f.create_group("{}".format(img_name))
+
             open_img = Image.open(img_path)
             img_arr = np.array(open_img)
+
             for i in DATA_COLS: 
                 idx = DATA_COLS.index(i)
                 grp.create_dataset("{}".format(i), data=img_arr[:, :, idx:idx+1], dtype=DT)
