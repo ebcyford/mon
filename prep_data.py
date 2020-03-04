@@ -40,8 +40,8 @@ parser.add_argument("--in_file", type=str,
                     help="H5 file to augment")
 parser.add_argument("--out_file", type=str, default=DEFAULT_OUT, 
                     help="output file of augmented chips [default:/data/training_data.h5")
-parser.add_argument("--img_size", type=int, default=80, 
-                    help="height of square image chip in pixels [default:80]")
+parser.add_argument("--img_size", type=int, default=90, 
+                    help="height of square image chip in pixels [default:90]")
 
 FLAGS = parser.parse_args()
 
@@ -69,6 +69,28 @@ with h5py.File(IN_FILE, "r") as f_in:
 
             # Create numpy ndarray 
             img_arr = np.c_[red, green, blue]
+
+            # Add padding if image is not a square
+            if (img_arr.shape[0] > img_arr.shape[1]):
+                pad = img_arr.shape[0] - img_arr.shape[1]
+                if (pad % 2 == 0):
+                    pad_left = int(pad / 2)
+                    pad_right = int(pad / 2)
+                else: 
+                    pad_left = int((pad + 1) / 2)
+                    pad_right = pad_left - 1
+                img_arr = np.pad(img_arr, ((0,0), (pad_left, pad_right), (0,0)), mode='constant')
+            elif (img_arr.shape[0] < img_arr.shape[1]):
+                pad = img_arr.shape[1] - img_arr.shape[0]
+                if (pad % 2 == 0):
+                    pad_up = int(pad / 2)
+                    pad_down = int(pad / 2)
+                else: 
+                    pad_up = int((pad + 1) / 2)
+                    pad_down = pad_up - 1
+                img_arr = np.pad(img_arr, ((pad_up, pad_down), (0,0), (0,0)), mode='constant')
+            else:
+                img_arr = img_arr
 
             # Resize 
             img_resized = cv2.resize(img_arr, (IMG_SIZE, IMG_SIZE), \
