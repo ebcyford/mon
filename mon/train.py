@@ -17,8 +17,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from datetime import datetime
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D, GlobalAveragePooling2D
