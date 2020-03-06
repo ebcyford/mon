@@ -1,10 +1,8 @@
 """
 Emily Cyford
 Shepherd University
-3/1/2020
-
+3/5/2020
 Take a directory full of TIF image chips and make one singular HDF5 file.
-
 """
 import argparse
 import h5py
