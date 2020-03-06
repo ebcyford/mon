@@ -1,12 +1,8 @@
-"""
-Emily Cyford
-Shepherd University
-3/2/2020
+"""Build network and train on prepared data.
 
-Documentation and code for building convolutional neural network to identify
-spruce trees. 
-
-Additional arguments may be passed in the command line, 
+This architecture was tested and hyperparameters tweaked such that loss
+was minimized and accuracy within training and validation were strongly
+correlated. Additional arguments may be passed in the command line, 
 but optimal parameters will be coded in as defaults.
 """
 import argparse
@@ -19,7 +15,8 @@ import tensorflow as tf
 from datetime import datetime
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D, GlobalAveragePooling2D
+from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, \
+    Conv2D, MaxPooling2D, GlobalAveragePooling2D
 from tensorflow.keras.utils import normalize
 from tqdm import tqdm
 
@@ -72,9 +69,14 @@ tensorboard = TensorBoard(log_dir=log_path, histogram_freq=1)
 if not os.path.exists(LOG_DIR): os.mkdir(LOG_DIR)
 if not os.path.exists(MODEL_DIR): os.mkdir(MODEL_DIR)
 
-def get_data():
+def get_data(training_file):
+    """Returns two numpy arrays
+    
+    Arguments: 
+        training_file: str, path to HDF5 training data file
+    """
     data = []
-    with h5py.File(IN_FILE, 'r') as f: 
+    with h5py.File(training_file, 'r') as f: 
         for img in tqdm(f.keys(), desc="Reading Training Data"):
             datagroup = f[img]
 
@@ -111,10 +113,15 @@ def get_data():
 
     return X, y
 
-def build_model(X):
+def build_model(in_shape):
+    """Returns a tensorflow.python.keras.saving.saved_model
+
+    Arguments:
+        in_shape: tuple, shape of input tensor channels last
+    """
     model = Sequential()
     model.add(Conv2D(64, (3, 3), 
-                     input_shape=(X.shape[1:])))
+                     input_shape=in_shape))
     model.add(Conv2D(64, (2, 2)))
     model.add(Conv2D(32, (3, 3)))
     model.add(MaxPooling2D(pool_size=(2,2)))
@@ -140,11 +147,11 @@ def build_model(X):
     return model
 
 # Retrieve training data
-features, labels = get_data()
+features, labels = get_data(IN_FILE)
 
 # Build and compile model
 print("Building Model...")
-model = build_model(features)
+model = build_model(features.shape[1:])
 adam = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE, 
                                 beta_1=0.9,
                                 beta_2=0.999,

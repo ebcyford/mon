@@ -1,8 +1,14 @@
-"""
-Emily Cyford
-Shepherd University
-3/5/2020
-Take a directory full of TIF image chips and make one singular HDF5 file.
+"""Take a directory full of TIF image chips and make one singular HDF5 file.
+
+The directory is assumed to have the following structure:
+root
+   |- Non-class
+   |   |- img1.tif
+   |   |- img2.tif
+   |- Class 1
+   |   |- img1.tif
+   |   |- img2.tif
+   |- Class 2... 
 """
 import argparse
 import h5py

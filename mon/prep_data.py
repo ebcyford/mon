@@ -1,11 +1,7 @@
-"""
-Emily Cyford
-Shepherd University 
-2/13/2020
+"""Script to augment data.
 
-Documentation and code for taking an HDF5 file full of image chips and 
-preparing them for training on neural network.
-Images are resized to a specified square numpy array. 
+Take an HDF5 file full of image chips and prepare them for training on 
+neural network. Images are resized to a specified square numpy array. 
 Images are rotated 90, 180, and 270 degrees, flipped vertically and 
 horizontally for each orientation, increasing sample size seven-fold.
 Transformed image chips, as well as their resized originals, are saved in 
@@ -20,7 +16,6 @@ Image suffixes are as follows:
     _5 = resized rotated 180 degrees flipped horizontally
     _6 = resized rotated 90 degrees clockwise
     _7 = resixed rotated 90 degrees clockwise flipped vertically
-      
 """
 import argparse
 import cv2
@@ -54,30 +49,35 @@ DT = np.dtype('uint8')
 
 if not os.path.exists(DATA_DIR): os.mkdir(DATA_DIR)
 
-# Function to make a rectangular chip square
+
 def make_square(arr):
-    # If height is greater than width
+    """Returns a square image array
+    
+    If height is greater than width, find the difference between the two. 
+    If the difference is even, add to both sides. 
+    If the difference is odd, add extra pixel column to the left.
+
+    If the width is greater than the height, find the difference.
+    If the difference is even, add to top and bottom.
+    If the differnce is odd, add extra pixel row to the top.
+
+    Arguments:
+        arr: ndarray, image to be padded
+    """
     if (arr.shape[0] > arr.shape[1]):
-        # Find the difference between the two
         pad = arr.shape[0] - arr.shape[1]
-        # If the difference is even, add to both sides
         if (pad % 2 == 0):
             pad_left = int(pad / 2)
             pad_right = int(pad / 2)
-        # If the difference is odd, add extra pixel column to left
         else: 
             pad_left = int((pad + 1) / 2)
             pad_right = pad_left - 1
         img_arr = np.pad(arr, ((0,0), (pad_left, pad_right), (0,0)), mode='constant')
-    # If the width is greater than the height
     elif (arr.shape[0] < arr.shape[1]):
-        # Find the difference
         pad = arr.shape[1] - arr.shape[0]
-        # If the difference is even, add to top and bottom
         if (pad % 2 == 0):
             pad_up = int(pad / 2)
             pad_down = int(pad / 2)
-        # If the difference is odd, add extra pixel row to top
         else: 
             pad_up = int((pad + 1) / 2)
             pad_down = pad_up - 1
@@ -87,8 +87,16 @@ def make_square(arr):
         img_arr = arr
     return img_arr
 
+
 # Function to perform the image augmentations
 def augment(img):
+    """Returns a list of image arrays after augmentation
+    
+    Perform rotation and reflection
+    
+    Arguments: 
+        img: ndarray
+    """
     # Returns a list, to iterate later
     imgs = []
     imgs.append(cv2.resize(img, (IMG_SIZE, IMG_SIZE), \
@@ -107,7 +115,7 @@ def augment(img):
     return imgs
 
 
-
+"""Writes to HDF5 file"""
 with h5py.File(IN_FILE, "r") as f_in:  
     with h5py.File(OUT_FILE, "w") as f_out:
         for img in tqdm(f_in, desc="Writing to {}".format(OUT_FILE.split("\\")[-1])):
