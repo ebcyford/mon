@@ -40,8 +40,8 @@ parser.add_argument("--in_file", type=str,
                     help="H5 file to augment")
 parser.add_argument("--out_file", type=str, default=DEFAULT_OUT, 
                     help="output file of augmented chips [default:/data/training_data.h5")
-parser.add_argument("--img_size", type=int, default=90, 
-                    help="height of square image chip in pixels [default:90]")
+parser.add_argument("--img_size", type=int, default=80, 
+                    help="height of square image chip in pixels [default:80]")
 
 FLAGS = parser.parse_args()
 
@@ -54,65 +54,86 @@ DT = np.dtype('uint8')
 
 if not os.path.exists(DATA_DIR): os.mkdir(DATA_DIR)
 
+# Function to make a rectangular chip square
+def make_square(arr):
+    # If height is greater than width
+    if (arr.shape[0] > arr.shape[1]):
+        # Find the difference between the two
+        pad = arr.shape[0] - arr.shape[1]
+        # If the difference is even, add to both sides
+        if (pad % 2 == 0):
+            pad_left = int(pad / 2)
+            pad_right = int(pad / 2)
+        # If the difference is odd, add extra pixel column to left
+        else: 
+            pad_left = int((pad + 1) / 2)
+            pad_right = pad_left - 1
+        img_arr = np.pad(arr, ((0,0), (pad_left, pad_right), (0,0)), mode='constant')
+    # If the width is greater than the height
+    elif (arr.shape[0] < arr.shape[1]):
+        # Find the difference
+        pad = arr.shape[1] - arr.shape[0]
+        # If the difference is even, add to top and bottom
+        if (pad % 2 == 0):
+            pad_up = int(pad / 2)
+            pad_down = int(pad / 2)
+        # If the difference is odd, add extra pixel row to top
+        else: 
+            pad_up = int((pad + 1) / 2)
+            pad_down = pad_up - 1
+        img_arr = np.pad(arr, ((pad_up, pad_down), (0,0), (0,0)), mode='constant')
+    # Should not get this far, but if it does, just return the array
+    else:
+        img_arr = arr
+    return img_arr
+
+# Function to perform the image augmentations
+def augment(img):
+    # Returns a list, to iterate later
+    imgs = []
+    imgs.append(cv2.resize(img, (IMG_SIZE, IMG_SIZE), \
+                                        interpolation=cv2.INTER_CUBIC))
+    imgs.append(np.fliplr(img))
+
+    imgs.append(np.rot90(img))
+    imgs.append(np.flipud(np.rot90(img)))
+    
+    imgs.append(np.rot90(img, 2))
+    imgs.append(np.fliplr(np.rot90(img, 2)))
+
+    imgs.append(np.rot90(img, 3))
+    imgs.append(np.flipud(np.rot90(img, 3)))
+
+    return imgs
+
+
+
 with h5py.File(IN_FILE, "r") as f_in:  
     with h5py.File(OUT_FILE, "w") as f_out:
-        for img in tqdm(f_in.keys()):
+        for img in tqdm(f_in, desc="Writing to {}".format(OUT_FILE.split("\\")[-1])):
             img_name = img.split(".")[0]
+            datagroup = f_in[img]
 
-            # Read each channel 
-            red = f_in[img]['1_R']
-            green = f_in[img]['2_G']
-            blue = f_in[img]['3_B']
+            # Read each channel and create a numpy ndarray
+            iteration = iter(datagroup)
+            first_channel = next(iteration)
+            img_arr = np.array(datagroup[first_channel])
+            for c in iteration:
+                img_arr = np.c_[img_arr, np.array(datagroup[c])]
 
             # Get classification
-            img_class = f_in[img].attrs['classification']
-
-            # Create numpy ndarray 
-            img_arr = np.c_[red, green, blue]
+            img_class = datagroup.attrs['classification']
 
             # Add padding if image is not a square
-            if (img_arr.shape[0] > img_arr.shape[1]):
-                pad = img_arr.shape[0] - img_arr.shape[1]
-                if (pad % 2 == 0):
-                    pad_left = int(pad / 2)
-                    pad_right = int(pad / 2)
-                else: 
-                    pad_left = int((pad + 1) / 2)
-                    pad_right = pad_left - 1
-                img_arr = np.pad(img_arr, ((0,0), (pad_left, pad_right), (0,0)), mode='constant')
-            elif (img_arr.shape[0] < img_arr.shape[1]):
-                pad = img_arr.shape[1] - img_arr.shape[0]
-                if (pad % 2 == 0):
-                    pad_up = int(pad / 2)
-                    pad_down = int(pad / 2)
-                else: 
-                    pad_up = int((pad + 1) / 2)
-                    pad_down = pad_up - 1
-                img_arr = np.pad(img_arr, ((pad_up, pad_down), (0,0), (0,0)), mode='constant')
+            if (img_arr.shape[0] != img_arr.shape[1]):
+                img_arr = make_square(img_arr)
             else:
                 img_arr = img_arr
 
-            # Resize 
-            img_resized = cv2.resize(img_arr, (IMG_SIZE, IMG_SIZE), \
-                                                interpolation=cv2.INTER_CUBIC)
-            fliplr = np.fliplr(img_resized)
+            # Augment 
+            imgs = augment(img_arr)
 
-            rot90 = np.rot90(img_resized)
-            rot90flipud = np.flipud(np.rot90(img_resized))
-            
-            rot180 = np.rot90(img_resized, 2)
-            rot180fliplr =np.fliplr(np.rot90(img_resized, 2))
-
-            rot270 = np.rot90(img_resized, 3)
-            rot270flipud = np.flipud(np.rot90(img_resized, 3))
-
-            imgs = [
-                img_resized, fliplr, 
-                rot90, rot90flipud,
-                rot180, rot180fliplr,
-                rot270, rot270flipud
-                ]
-
+            # Write each augmented image to HDF5 as separate datasets
             for i in range(8):
                 grp = f_out.create_group("{}_{}".format(img_name, i))
                 grp.attrs['classification'] = img_class
