@@ -102,6 +102,7 @@ def build_model(in_shape):
 
 def main():
     # Retrieve training data
+    print("Retrieving Data...")
     features, labels = get_data(IN_FILE)
 
     # Build and compile model

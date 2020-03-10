@@ -23,7 +23,7 @@ def main():
     with h5py.File(OUT_FILE, "w") as f:
         for classification in CLASSIFICATIONS:
             for img in tqdm(os.listdir(os.path.join(IN_DIR, classification)), 
-                            desc="Writing Class: {}".format(classification)):
+                            desc="Writing Class: {}...".format(classification)):
 
                 # Group names are simply increasing numbers
                 img_name = counter
