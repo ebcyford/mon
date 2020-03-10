@@ -19,14 +19,13 @@ from tqdm import tqdm
 
 
 def main(): 
-    counter = 0
     with h5py.File(OUT_FILE, "w") as f:
         for classification in CLASSIFICATIONS:
             for img in tqdm(os.listdir(os.path.join(IN_DIR, classification)), 
                             desc="Writing Class: {}...".format(classification)):
 
-                # Group names are simply increasing numbers
-                img_name = counter
+                # Create group
+                img_name = img.split(".")[0]
                 img_path = os.path.join(IN_DIR, classification, img)
                 grp = f.create_group("{}".format(img_name))
 
@@ -38,7 +37,6 @@ def main():
                     idx = DATA_COLS.index(i)
                     grp.create_dataset("{}".format(i), data=img_arr[:, :, idx:idx+1], dtype=DT)
                 grp.attrs["classification"] = CLASSIFICATIONS.index(classification)
-                counter += 1
 
 
 if __name__ == "__main__":
