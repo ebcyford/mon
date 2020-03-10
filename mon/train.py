@@ -20,54 +20,6 @@ from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, \
 from tensorflow.keras.utils import normalize
 from tqdm import tqdm
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-DEFAULT_IN = os.path.join(BASE_DIR, "training_data.h5")
-DEFAULT_LOG = os.path.join(BASE_DIR, "logs")
-TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
-MODEL_DIR = os.path.join(BASE_DIR, "models")
-DEFAULT_SAVE = os.path.join(MODEL_DIR, "model_" + TIMESTAMP)
-
-parser = argparse.ArgumentParser()
-
-parser.add_argument("--in_file", type=str, default=DEFAULT_IN,
-                    help="HDF5 file of training data chips [default:data\\training_data.h5")
-parser.add_argument("--log_dir", type=str, default=DEFAULT_LOG,
-                    help="directory of log files [default:logs")
-parser.add_argument("--save_file", type=str, default=DEFAULT_SAVE, 
-                    help="where to save model file [default:models\\model_+TIMESTAMP.model]")
-parser.add_argument("--batch_size", type=int, default=512,
-                    help="number images to process in each batch [default:512]")
-parser.add_argument("--epochs", type=int, default=15, 
-                    help="number of epochs to train model [default:20]")
-parser.add_argument("--validation_size", type=int, default=0.1,
-                    help="size of validations set [default:0.1]")
-parser.add_argument("--learning_rate", type=float, default=0.001,
-                    help="learning rate for ADAM optimizer")
-parser.add_argument("--name", type=str, default=TIMESTAMP,
-                    help="name of model, timestamp appended")
-
-FLAGS = parser.parse_args()
-
-IN_FILE = FLAGS.in_file
-LOG_DIR = FLAGS.log_dir
-SAVE_FILE = FLAGS.save_file
-BATCH_SIZE = FLAGS.batch_size
-EPOCHS = FLAGS.epochs
-VALIDATION_SIZE = FLAGS.validation_size
-LEARNING_RATE = FLAGS.learning_rate
-NAME = FLAGS.name
-
-if NAME != TIMESTAMP:
-    log_path = os.path.join(LOG_DIR, NAME + "_" + TIMESTAMP)
-else: 
-    log_path = os.path.join(LOG_DIR, NAME)
-
-print(log_path)
-tensorboard = TensorBoard(log_dir=log_path, histogram_freq=1)
-
-if not os.path.exists(LOG_DIR): os.mkdir(LOG_DIR)
-if not os.path.exists(MODEL_DIR): os.mkdir(MODEL_DIR)
 
 def get_data(training_file):
     """Returns two numpy arrays
@@ -113,6 +65,7 @@ def get_data(training_file):
 
     return X, y
 
+
 def build_model(in_shape):
     """Returns a tensorflow.python.keras.saving.saved_model
 
@@ -146,30 +99,85 @@ def build_model(in_shape):
     
     return model
 
-# Retrieve training data
-features, labels = get_data(IN_FILE)
 
-# Build and compile model
-print("Building Model...")
-model = build_model(features.shape[1:])
-adam = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE, 
-                                beta_1=0.9,
-                                beta_2=0.999,
-                                epsilon=1e-07,
-                                amsgrad=False)
-model.compile(loss="binary_crossentropy",
-              optimizer=adam, 
-              metrics=["accuracy"])
-model.summary()
+def main():
+    # Retrieve training data
+    features, labels = get_data(IN_FILE)
 
-# Train model on training data
-print("Training Model...")
-model.fit(features, labels, 
-          batch_size=BATCH_SIZE, 
-          epochs=EPOCHS, 
-          validation_split=VALIDATION_SIZE, 
-          callbacks=[tensorboard])
+    # Build and compile model
+    print("Building Model...")
+    model = build_model(features.shape[1:])
+    adam = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE, 
+                                    beta_1=0.9,
+                                    beta_2=0.999,
+                                    epsilon=1e-07,
+                                    amsgrad=False)
+    model.compile(loss="binary_crossentropy",
+                optimizer=adam, 
+                metrics=["accuracy"])
+    model.summary()
 
-print("Saving...")
-model.save(SAVE_FILE)
-print("Model Saved to {}".format(SAVE_FILE))
+    # Train model on training data
+    print("Training Model...")
+    model.fit(features, labels, 
+            batch_size=BATCH_SIZE, 
+            epochs=EPOCHS, 
+            validation_split=VALIDATION_SIZE, 
+            callbacks=[tensorboard])
+
+    print("Saving...")
+    model.save(SAVE_FILE)
+    print("Model Saved to {}".format(SAVE_FILE))
+
+
+if __name__ == "__main__":
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    DATA_DIR = os.path.join(BASE_DIR, "data")
+    DEFAULT_IN = os.path.join(BASE_DIR, "training_data.h5")
+    DEFAULT_LOG = os.path.join(BASE_DIR, "logs")
+    TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
+    MODEL_DIR = os.path.join(BASE_DIR, "models")
+    DEFAULT_SAVE = os.path.join(MODEL_DIR, "model_" + TIMESTAMP)
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--in_file", type=str, default=DEFAULT_IN,
+                        help="HDF5 file of training data chips [default:data\\training_data.h5")
+    parser.add_argument("--log_dir", type=str, default=DEFAULT_LOG,
+                        help="directory of log files [default:logs")
+    parser.add_argument("--save_file", type=str, default=DEFAULT_SAVE, 
+                        help="where to save model file [default:models\\model_+TIMESTAMP.model]")
+    parser.add_argument("--batch_size", type=int, default=512,
+                        help="number images to process in each batch [default:512]")
+    parser.add_argument("--epochs", type=int, default=15, 
+                        help="number of epochs to train model [default:20]")
+    parser.add_argument("--validation_size", type=int, default=0.1,
+                        help="size of validations set [default:0.1]")
+    parser.add_argument("--learning_rate", type=float, default=0.001,
+                        help="learning rate for ADAM optimizer")
+    parser.add_argument("--name", type=str, default=TIMESTAMP,
+                        help="name of model, timestamp appended")
+
+    FLAGS = parser.parse_args()
+
+    IN_FILE = FLAGS.in_file
+    LOG_DIR = FLAGS.log_dir
+    SAVE_FILE = FLAGS.save_file
+    BATCH_SIZE = FLAGS.batch_size
+    EPOCHS = FLAGS.epochs
+    VALIDATION_SIZE = FLAGS.validation_size
+    LEARNING_RATE = FLAGS.learning_rate
+    NAME = FLAGS.name
+
+    if NAME != TIMESTAMP:
+        log_path = os.path.join(LOG_DIR, NAME + "_" + TIMESTAMP)
+    else: 
+        log_path = os.path.join(LOG_DIR, NAME)
+
+    print("Logging to: " + log_path)
+    tensorboard = TensorBoard(log_dir=log_path, histogram_freq=1)
+
+    if not os.path.exists(LOG_DIR): os.mkdir(LOG_DIR)
+    if not os.path.exists(MODEL_DIR): os.mkdir(MODEL_DIR)
+
+    main()

@@ -24,31 +24,6 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, 'data')
-DEFAULT_OUT = os.path.join(DATA_DIR, 'training_data.h5')
-
-parser = argparse.ArgumentParser(
-    description="Augmentation through rotation and reflection")
-
-parser.add_argument("--in_file", type=str,
-                    help="H5 file to augment")
-parser.add_argument("--out_file", type=str, default=DEFAULT_OUT, 
-                    help="output file of augmented chips [default:/data/training_data.h5")
-parser.add_argument("--img_size", type=int, default=80, 
-                    help="height of square image chip in pixels [default:80]")
-
-FLAGS = parser.parse_args()
-
-IN_FILE = FLAGS.in_file
-OUT_FILE = FLAGS.out_file
-IMG_SIZE = FLAGS.img_size
-
-DATA_COLS = ["1_R", "2_G", "3_B"]
-DT = np.dtype('uint8')
-
-if not os.path.exists(DATA_DIR): os.mkdir(DATA_DIR)
-
 
 def make_square(arr):
     """Returns a square image array
@@ -88,7 +63,6 @@ def make_square(arr):
     return img_arr
 
 
-# Function to perform the image augmentations
 def augment(img):
     """Returns a list of image arrays after augmentation
     
@@ -115,6 +89,7 @@ def augment(img):
     return imgs
 
 
+def main():
 """Writes to HDF5 file"""
 with h5py.File(IN_FILE, "r") as f_in:  
     with h5py.File(OUT_FILE, "w") as f_out:
@@ -150,3 +125,32 @@ with h5py.File(IN_FILE, "r") as f_in:
                     grp.create_dataset("{}".format(j), 
                                     data=imgs[i][:, :, idx:idx+1], 
                                     dtype=DT)
+
+
+if __name__ == "__main__":
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    DATA_DIR = os.path.join(BASE_DIR, 'data')
+    DEFAULT_OUT = os.path.join(DATA_DIR, 'training_data.h5')
+
+    parser = argparse.ArgumentParser(
+        description="Augmentation through rotation and reflection")
+
+    parser.add_argument("--in_file", type=str,
+                        help="H5 file to augment")
+    parser.add_argument("--out_file", type=str, default=DEFAULT_OUT, 
+                        help="output file of augmented chips [default:/data/training_data.h5")
+    parser.add_argument("--img_size", type=int, default=80, 
+                        help="height of square image chip in pixels [default:80]")
+
+    FLAGS = parser.parse_args()
+
+    IN_FILE = FLAGS.in_file
+    OUT_FILE = FLAGS.out_file
+    IMG_SIZE = FLAGS.img_size
+
+    DATA_COLS = ["1_R", "2_G", "3_B"]
+    DT = np.dtype('uint8')
+
+    if not os.path.exists(DATA_DIR): os.mkdir(DATA_DIR)
+    
+    main()
