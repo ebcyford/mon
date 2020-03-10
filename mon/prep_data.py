@@ -90,41 +90,41 @@ def augment(img):
 
 
 def main():
-"""Writes to HDF5 file"""
-with h5py.File(IN_FILE, "r") as f_in:  
-    with h5py.File(OUT_FILE, "w") as f_out:
-        for img in tqdm(f_in, desc="Writing to {}".format(OUT_FILE.split("\\")[-1])):
-            img_name = img.split(".")[0]
-            datagroup = f_in[img]
+    """Writes to HDF5 file"""
+    with h5py.File(IN_FILE, "r") as f_in:  
+        with h5py.File(OUT_FILE, "w") as f_out:
+            for img in tqdm(f_in, desc="Writing to {}".format(OUT_FILE.split("\\")[-1])):
+                img_name = img.split(".")[0]
+                datagroup = f_in[img]
 
-            # Read each channel and create a numpy ndarray
-            iteration = iter(datagroup)
-            first_channel = next(iteration)
-            img_arr = np.array(datagroup[first_channel])
-            for c in iteration:
-                img_arr = np.c_[img_arr, np.array(datagroup[c])]
+                # Read each channel and create a numpy ndarray
+                iteration = iter(datagroup)
+                first_channel = next(iteration)
+                img_arr = np.array(datagroup[first_channel])
+                for c in iteration:
+                    img_arr = np.c_[img_arr, np.array(datagroup[c])]
 
-            # Get classification
-            img_class = datagroup.attrs['classification']
+                # Get classification
+                img_class = datagroup.attrs['classification']
 
-            # Add padding if image is not a square
-            if (img_arr.shape[0] != img_arr.shape[1]):
-                img_arr = make_square(img_arr)
-            else:
-                img_arr = img_arr
+                # Add padding if image is not a square
+                if (img_arr.shape[0] != img_arr.shape[1]):
+                    img_arr = make_square(img_arr)
+                else:
+                    img_arr = img_arr
 
-            # Augment 
-            imgs = augment(img_arr)
+                # Augment 
+                imgs = augment(img_arr)
 
-            # Write each augmented image to HDF5 as separate datasets
-            for i in range(8):
-                grp = f_out.create_group("{}_{}".format(img_name, i))
-                grp.attrs['classification'] = img_class
-                for j in DATA_COLS: 
-                    idx = DATA_COLS.index(j)
-                    grp.create_dataset("{}".format(j), 
-                                    data=imgs[i][:, :, idx:idx+1], 
-                                    dtype=DT)
+                # Write each augmented image to HDF5 as separate datasets
+                for i in range(8):
+                    grp = f_out.create_group("{}_{}".format(img_name, i))
+                    grp.attrs['classification'] = img_class
+                    for j in DATA_COLS: 
+                        idx = DATA_COLS.index(j)
+                        grp.create_dataset("{}".format(j), 
+                                        data=imgs[i][:, :, idx:idx+1], 
+                                        dtype=DT)
 
 
 if __name__ == "__main__":
@@ -132,8 +132,7 @@ if __name__ == "__main__":
     DATA_DIR = os.path.join(BASE_DIR, 'data')
     DEFAULT_OUT = os.path.join(DATA_DIR, 'training_data.h5')
 
-    parser = argparse.ArgumentParser(
-        description="Augmentation through rotation and reflection")
+    parser = argparse.ArgumentParser()
 
     parser.add_argument("--in_file", type=str,
                         help="H5 file to augment")
