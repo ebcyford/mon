@@ -17,8 +17,11 @@ from rasterio.mask import mask
 from shapely import speedups
 from tqdm import tqdm
 
+# Environment settings
 if (speedups.available):
     speedups.enable()
+
+tf.get_logger().setLevel("INFO")
 
 
 def main():
