@@ -140,8 +140,9 @@ if __name__ == "__main__":
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     DATA_DIR = os.path.join(BASE_DIR, "data")
     DEFAULT_IN = os.path.join(BASE_DIR, "training_data.h5")
-    DEFAULT_LOG = os.path.join(BASE_DIR, "logs")
+    DEFAULT_LOG_DIR = os.path.join(BASE_DIR, "logs")
     TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
+    DEFAULT_LOG = os.path.join(DEFAULT_LOG_DIR, TIMESTAMP)
     MODEL_DIR = os.path.join(BASE_DIR, "models")
     DEFAULT_SAVE = os.path.join(MODEL_DIR, "model_" + TIMESTAMP)
 
@@ -149,7 +150,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--in_file", type=str, default=DEFAULT_IN,
                         help="HDF5 file of training data chips [default:data\\training_data.h5")
-    parser.add_argument("--log_dir", type=str, default=DEFAULT_LOG,
+    parser.add_argument("--log_dir", type=str, default=DEFAULT_LOG_DIR,
                         help="directory of log files [default:logs")
     parser.add_argument("--save_file", type=str, default=DEFAULT_SAVE, 
                         help="where to save model file [default:models\\model_+TIMESTAMP.model]")
@@ -161,7 +162,7 @@ if __name__ == "__main__":
                         help="size of validations set [default:0.1]")
     parser.add_argument("--learning_rate", type=float, default=0.001,
                         help="learning rate for ADAM optimizer")
-    parser.add_argument("--name", type=str, default=TIMESTAMP,
+    parser.add_argument("--name", type=str, default=DEFAULT_LOG,
                         help="name of model, timestamp appended")
     parser.add_argument("--img_size", type=int, default=80, 
                         help="height of square image chip in pixels [default:80]")
@@ -178,7 +179,7 @@ if __name__ == "__main__":
     NAME = FLAGS.name
     IMG_SIZE = FLAGS.img_size
 
-    if NAME != TIMESTAMP:
+    if NAME != DEFAULT_LOG:
         log_path = os.path.join(LOG_DIR, NAME + "_" + TIMESTAMP)
     else: 
         log_path = os.path.join(LOG_DIR, NAME)
