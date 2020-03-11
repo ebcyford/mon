@@ -1,20 +1,19 @@
 """Script to augment data.
 
 Take an HDF5 file full of image chips and prepare them for training on 
-neural network. Images are resized to a specified square numpy array. 
-Images are rotated 90, 180, and 270 degrees, flipped vertically and 
-horizontally for each orientation, increasing sample size seven-fold.
-Transformed image chips, as well as their resized originals, are saved in 
+neural network. Images rotated 90, 180, and 270 degrees, flipped vertically 
+and horizontally for each orientation, increasing sample size seven-fold.
+Transformed image chips, as well as their originals, are saved in 
 specified output file.
 
 Image suffixes are as follows:
-    _0 = original image resized
-    _1 = resized image flipped horizontally
-    _2 = resized rotated 90 degrees counterclockwise
-    _3 = resized rotated 90 degrees counterclockwise flipped vertically
-    _4 = resized rotated 180 degrees
-    _5 = resized rotated 180 degrees flipped horizontally
-    _6 = resized rotated 90 degrees clockwise
+    _0 = original image
+    _1 = image flipped horizontally
+    _2 = rotated 90 degrees counterclockwise
+    _3 = rotated 90 degrees counterclockwise flipped vertically
+    _4 = rotated 180 degrees
+    _5 = rotated 180 degrees flipped horizontally
+    _6 = rotated 90 degrees clockwise
     _7 = resixed rotated 90 degrees clockwise flipped vertically
 """
 import argparse
@@ -36,7 +35,6 @@ def augment(img):
     """
     # Returns a list, to iterate later
     imgs = []
-    img = prep_chip(img, IMG_SIZE)
     imgs.append(img)
     imgs.append(np.fliplr(img))
 
@@ -94,6 +92,7 @@ if __name__ == "__main__":
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     DATA_DIR = os.path.join(BASE_DIR, 'data')
     DEFAULT_OUT = os.path.join(DATA_DIR, 'training_data.h5')
+    DEFAULT_DATA_COLS = ["1_R", "2_G", "3_B"]
 
     parser = argparse.ArgumentParser()
 
@@ -101,17 +100,16 @@ if __name__ == "__main__":
                         help="H5 file to augment")
     parser.add_argument("--out_file", type=str, default=DEFAULT_OUT, 
                         help="output file of augmented chips [default:/data/training_data.h5")
-    parser.add_argument("--img_size", type=int, default=80, 
-                        help="height of square image chip in pixels [default:80]")
+    parser.add_argument("--data_cols", nargs="+", default=DEFAULT_DATA_COLS,
+                        help="ordered list of channels in TIF file [default:1_R, 2_G, 3_B]")
 
     FLAGS = parser.parse_args()
 
     IN_FILE = FLAGS.in_file
-    OUT_FILE = FLAGS.out_file
-    IMG_SIZE = FLAGS.img_size
-
-    DATA_COLS = ["1_R", "2_G", "3_B"]
-    DT = np.dtype('uint8')
+    OUT_FILE = FLAGS.out_files
+    DATA_COLS = FLAGS.data_cols
+    
+    DT = np.dtype(float)
 
     if not os.path.exists(DATA_DIR): os.mkdir(DATA_DIR)
     

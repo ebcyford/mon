@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from datetime import datetime
+from mon.utils import prep_chip
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, \
@@ -21,11 +22,12 @@ from tensorflow.keras.utils import normalize
 from tqdm import tqdm
 
 
-def get_data(training_file):
+def get_data(training_file, img_size=80):
     """Returns two numpy arrays
     
     Arguments: 
         training_file: str, path to HDF5 training data file
+        img_size: int, size of image chip to train on
     """
     data = []
     with h5py.File(training_file, 'r') as f: 
@@ -41,6 +43,9 @@ def get_data(training_file):
 
             # Get classification 
             img_class = datagroup.attrs['classification']
+
+            # Resize to specified size
+            img_arr = prep_chip(img_arr, img_size=img_size)
 
             # Add to output array
             data.append([img_arr, img_class])
@@ -103,7 +108,7 @@ def build_model(in_shape):
 def main():
     # Retrieve training data
     print("Retrieving Data...")
-    features, labels = get_data(IN_FILE)
+    features, labels = get_data(IN_FILE, img_size=IMG_SIZE)
 
     # Build and compile model
     print("Building Model...")
@@ -114,8 +119,8 @@ def main():
                                     epsilon=1e-07,
                                     amsgrad=False)
     model.compile(loss="binary_crossentropy",
-                optimizer=adam, 
-                metrics=["accuracy"])
+                  optimizer=adam, 
+                  metrics=["accuracy"])
     model.summary()
 
     # Train model on training data
@@ -158,6 +163,8 @@ if __name__ == "__main__":
                         help="learning rate for ADAM optimizer")
     parser.add_argument("--name", type=str, default=TIMESTAMP,
                         help="name of model, timestamp appended")
+    parser.add_argument("--img_size", type=int, default=80, 
+                        help="height of square image chip in pixels [default:80]")
 
     FLAGS = parser.parse_args()
 
@@ -169,6 +176,7 @@ if __name__ == "__main__":
     VALIDATION_SIZE = FLAGS.validation_size
     LEARNING_RATE = FLAGS.learning_rate
     NAME = FLAGS.name
+    IMG_SIZE = FLAGS.img_size
 
     if NAME != TIMESTAMP:
         log_path = os.path.join(LOG_DIR, NAME + "_" + TIMESTAMP)
