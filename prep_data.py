@@ -106,7 +106,7 @@ if __name__ == "__main__":
     FLAGS = parser.parse_args()
 
     IN_FILE = FLAGS.in_file
-    OUT_FILE = FLAGS.out_files
+    OUT_FILE = FLAGS.out_file
     DATA_COLS = FLAGS.data_cols
 
     DT = np.dtype(float)
