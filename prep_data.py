@@ -14,7 +14,7 @@ Image suffixes are as follows:
     _4 = rotated 180 degrees
     _5 = rotated 180 degrees flipped horizontally
     _6 = rotated 90 degrees clockwise
-    _7 = resixed rotated 90 degrees clockwise flipped vertically
+    _7 = rotated 90 degrees clockwise flipped vertically
 """
 import argparse
 import cv2
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     IN_FILE = FLAGS.in_file
     OUT_FILE = FLAGS.out_files
     DATA_COLS = FLAGS.data_cols
-    
+
     DT = np.dtype(float)
 
     if not os.path.exists(DATA_DIR): os.mkdir(DATA_DIR)
