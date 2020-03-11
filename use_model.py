@@ -24,7 +24,6 @@ if (speedups.available):
 def main():
     trees['geometry'] = trees.apply(lambda x: x.geometry.buffer(get_buffer(x.Z, SPATIAL_RES)), axis=1)
     trees['geometry'] = trees.envelope
-    trees['prediction'] = 0
 
     tree_chips = []
     for index, row in tqdm(trees.iterrows(), desc="Finding Trees...", total=len(trees)): 
@@ -57,10 +56,6 @@ if __name__ == "__main__":
                         help="filepath of raster to perform inference")
     parser.add_argument("--tree_centers", type=str, 
                         help="shapefile of identified tree centers")
-    parser.add_argument("--spatial_resolution", type=float, default=0.1,
-                        help="spatial resolution in units of input raster [default:0.1]")
-    parser.add_argument("--img_size", type=int, default=80, 
-                        help="size of image as fed into model when training [default:80]")
     parser.add_argument("--out_file", type=str, default=DEFAULT_OUT, 
                         help="shapefile of output trees and predictions [default:output.shp]")
 
@@ -70,11 +65,12 @@ if __name__ == "__main__":
     TREES = FLAGS.tree_centers
     RASTER = FLAGS.in_raster
     OUT_FILE = FLAGS.out_file
-    SPATIAL_RES = FLAGS.spatial_resolution
-    IMG_SIZE = FLAGS.img_size
 
     print("Reading Data...")
     raster = rasterio.open(RASTER)
     trees = gpd.read_file(TREES)
     model = tf.keras.models.load_model(MODEL)
+
+    SPATIAL_RES = raster.res[0]
+    IMG_SIZE = model.get_input_shape_at(0)[1]
     main()
