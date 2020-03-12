@@ -92,24 +92,27 @@ if __name__ == "__main__":
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     DATA_DIR = os.path.join(BASE_DIR, 'data')
     DEFAULT_OUT = os.path.join(DATA_DIR, 'training_data.h5')
-    DEFAULT_DATA_COLS = ["1_R", "2_G", "3_B"]
 
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--in_file", type=str,
                         help="H5 file to augment")
     parser.add_argument("--out_file", type=str, default=DEFAULT_OUT, 
-                        help="output file of augmented chips [default:/data/training_data.h5")
-    parser.add_argument("--data_cols", nargs="+", default=DEFAULT_DATA_COLS,
-                        help="ordered list of channels in TIF file [default:1_R, 2_G, 3_B]")
+                        help="output file of augmented chips [default:/data/training_data.h5")\
 
     FLAGS = parser.parse_args()
 
     IN_FILE = FLAGS.in_file
     OUT_FILE = FLAGS.out_file
-    DATA_COLS = FLAGS.data_cols
 
     DT = np.dtype(float)
+
+    DATA_COLS = []
+    with h5py.File(IN_FILE, "r") as f:
+        for img in f.keys():
+            for c in f[img].keys():
+                DATA_COLS.append(c)
+            break
 
     if not os.path.exists(DATA_DIR): os.mkdir(DATA_DIR)
     
