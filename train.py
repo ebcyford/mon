@@ -18,7 +18,6 @@ from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, \
     Conv2D, MaxPooling2D, GlobalAveragePooling2D
-from tensorflow.keras.utils import normalize
 from tqdm import tqdm
 
 tf.get_logger.setLevel("INFO")
@@ -66,7 +65,7 @@ def get_data(training_file, img_size=80):
     y = np.array(y)
 
     # Normalize features and reshape for input tensor
-    X = normalize(X)
+    X = X/255.0
     X = X.reshape(-1, X.shape[1], X.shape[2], X.shape[3])
 
     return X, y
@@ -80,25 +79,25 @@ def build_model(in_shape):
     """
     model = Sequential()
     model.add(Conv2D(64, (3, 3), 
-                     input_shape=in_shape))
-    model.add(Conv2D(64, (2, 2)))
-    model.add(Conv2D(32, (3, 3)))
+                     input_shape=in_shape,
+                     activation="relu",
+                     padding="same"))
+    model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
+    model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
     model.add(MaxPooling2D(pool_size=(2,2)))
-    model.add(Dropout(0.025))
+    model.add(Dropout(0.1))
     
-    model.add(Conv2D(32, (3, 3)))
-    model.add(Conv2D(32, (3, 3)))
+    model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
+    model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
     model.add(MaxPooling2D(pool_size=(2,2)))
-    model.add(Dropout(0.025))
-    
-    model.add(Conv2D(32, (3, 3)))
-    model.add(Conv2D(32, (3, 3)))
-    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(Dropout(0.2))
     
     model.add(GlobalAveragePooling2D())
     
-    model.add(Dense(64))
+    model.add(Flatten())
+    model.add(Dense(128))
     model.add(Activation("relu"))
+    model.add(Dropout(0.4))
     
     model.add(Dense(1))
     model.add(Activation("sigmoid"))
@@ -157,11 +156,11 @@ if __name__ == "__main__":
                         help="where to save model file [default:models\\model_+TIMESTAMP.model]")
     parser.add_argument("--batch_size", type=int, default=512,
                         help="number images to process in each batch [default:512]")
-    parser.add_argument("--epochs", type=int, default=15, 
+    parser.add_argument("--epochs", type=int, default=20, 
                         help="number of epochs to train model [default:20]")
     parser.add_argument("--validation_size", type=int, default=0.1,
                         help="size of validations set [default:0.1]")
-    parser.add_argument("--learning_rate", type=float, default=0.001,
+    parser.add_argument("--learning_rate", type=float, default=0.0001,
                         help="learning rate for ADAM optimizer")
     parser.add_argument("--name", type=str, default=DEFAULT_LOG,
                         help="name of model, timestamp appended")
