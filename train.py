@@ -20,7 +20,7 @@ from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, \
     Conv2D, MaxPooling2D, GlobalAveragePooling2D
 from tqdm import tqdm
 
-tf.get_logger.setLevel("INFO")
+tf.get_logger().setLevel("INFO")
 
 def get_data(training_file, img_size=80):
     """Returns two numpy arrays
