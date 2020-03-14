@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from datetime import datetime
-from mon.utils import prep_chip
+from mon.utils import prep_chip, normalize
 from sklearn.model_selection import KFold
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.models import Sequential
@@ -66,7 +66,7 @@ def get_data(training_file, img_size=80):
     y = np.array(y)
 
     # Normalize features and reshape for input tensor
-    X = X/255.0
+    X = normalize(X)
     X = X.reshape(-1, X.shape[1], X.shape[2], X.shape[3])
 
     return X, y

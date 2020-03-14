@@ -66,3 +66,16 @@ def make_square(arr):
     else:
         img_arr = arr
     return img_arr
+
+    def normalize(arr):
+        """Returns a numpy array
+
+        Depending on the method of normalization, returns an image array
+        normalized. Changing this method allows you to not have to change
+        the other scripts. 
+
+        Arguments:
+            arr: ndarray
+        """
+        norm_arr = arr/255.0
+        return norm_arr

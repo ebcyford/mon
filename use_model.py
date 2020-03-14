@@ -12,7 +12,7 @@ import shapely
 import geopandas as gpd
 import numpy as np
 import tensorflow as tf
-from mon.utils import get_buffer, prep_chip
+from mon.utils import get_buffer, prep_chip, normalize
 from rasterio.mask import mask
 from shapely import speedups
 from tqdm import tqdm
@@ -36,12 +36,14 @@ def main():
         tree_chips.append(img_arr)
 
     tree_chips = np.array(tree_chips)
-    tree_chips = tf.keras.utils.normalize(tree_chips)
+    tree_chips = normalize(tree_chips)
 
     print("Predicting species...")
-    predictions = model.predict_classes(tree_chips, batch_size=128)
+    classification = model.predict_classes(tree_chips, batch_size=128)
+    certainty = model.predict(tree_chips, batch_size=128)
 
-    trees['prediction'] = predictions
+    trees['classification'] = classification
+    trees['certainty'] = certainty
 
     print("Writing to " + OUT_FILE)
     trees.to_file(OUT_FILE)
