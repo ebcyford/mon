@@ -86,19 +86,20 @@ def build_model(in_shape, learning_rate=0.0001):
     model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
     model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
     model.add(MaxPooling2D(pool_size=(2,2)))
-    model.add(Dropout(0.1))
     
     model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
     model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
     model.add(MaxPooling2D(pool_size=(2,2)))
-    model.add(Dropout(0.2))
+
+    model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
+    model.add(MaxPooling2D(pool_size=(2,2)))
     
     model.add(GlobalAveragePooling2D())
     
     model.add(Flatten())
     model.add(Dense(128))
     model.add(Activation("relu"))
-    model.add(Dropout(0.4))
+    model.add(Dropout(0.3))
     
     model.add(Dense(1))
     model.add(Activation("sigmoid"))
@@ -120,34 +121,49 @@ def main():
     print("Retrieving Data...")
     features, labels = get_data(IN_FILE, img_size=IMG_SIZE)
 
-    # Cross validation
-    cross_val = KFold(n_splits=FOLDS)
-    fold = 1
+    if (VALIDATION_SIZE == 0.0):
+        # Cross validation
+        cross_val = KFold(n_splits=FOLDS)
+        fold = 1
 
-    # Train and run model
-    for train_idx, test_idx in cross_val.split(features):
-            X_train, X_test = features[train_idx], features[test_idx]
-            y_train, y_test = labels[train_idx], labels[test_idx]
-            
-            log_path = os.path.join(LOG_DIR, NAME + "_fold" + str(fold))
+        for train_idx, test_idx in cross_val.split(features):
+                X_train, X_test = features[train_idx], features[test_idx]
+                y_train, y_test = labels[train_idx], labels[test_idx]
+                
+                log_path = os.path.join(LOG_DIR, NAME + "_fold" + str(fold))
 
-            save_file = os.path.join(SAVE_DIR, "{}_fold{}.model".format(NAME, fold))
+                save_file = os.path.join(SAVE_DIR, "{}_fold{}.model".format(NAME, fold))
 
-            fold += 1
+                fold += 1
 
-            print("Model File: " + save_file)
-            print("Log Path: " + log_path)
-            
-            # tensorboard = TensorBoard(log_dir=log_path, histogram_freq=1)
-            
-            # model = build_model(in_shape=X_train.shape[1:])
-            # model.fit(x=X_train, y=y_train,
-            #         batch_size=BATCH_SIZE,
-            #         epochs=EPOCHS,
-            #         validation_data=(X_test, y_test),
-            #         callbacks=[tensorboard])
-            
-            # model.save(save_file)
+                print("Model File: " + save_file)
+                print("Log Path: " + log_path)
+                
+                tensorboard = TensorBoard(log_dir=log_path, histogram_freq=1)
+                
+                model = build_model(in_shape=X_train.shape[1:])
+                model.fit(x=X_train, y=y_train,
+                        batch_size=BATCH_SIZE,
+                        epochs=EPOCHS,
+                        validation_data=(X_test, y_test),
+                        callbacks=[tensorboard])
+                
+                model.save(save_file)
+    else:
+        log_path = os.path.join(LOG_DIR, NAME)
+        save_file = os.path.join(SAVE_DIR, "{}.model".format(NAME))
+
+        print("Model File: " + save_file)
+        print("Log Path: " + log_path)
+
+        tensorboard = TensorBoard(log_dir=log_path, histogram_freq=1)
+        model = build_model(in_shape=features.shape[1:])
+        model.fit(x=features, y=labels,
+                  batch_size=BATCH_SIZE, 
+                  epochs=EPOCHS,
+                  validation_split=VALIDATION_SIZE,
+                  callbacks=[tensorboard])
+        model.save(save_file)
 
 
 if __name__ == "__main__":
@@ -170,16 +186,18 @@ if __name__ == "__main__":
                         help="directory to save models [default:models]")
     parser.add_argument("--name", type=str, default=DEFAULT_NAME,
                         help="name of model, timestamp appended")
-    parser.add_argument("--batch_size", type=int, default=512, 
-                        help="number of images to process in each batch [default:512]")
-    parser.add_argument("--epochs", type=int, default=14,
-                        help="number of epochs to train model [default:14]")
+    parser.add_argument("--batch_size", type=int, default=256, 
+                        help="number of images to process in each batch [default:256]")
+    parser.add_argument("--epochs", type=int, default=12,
+                        help="number of epochs to train model [default:12]")
     parser.add_argument("--folds", type=int, default=10,
                         help="number of fold in k-fold cross validation [default:10]")
     parser.add_argument("--learning_rate", type=float, default=0.0001,
                         help="learning rate for ADAM optimizer [default:0.0001]")
     parser.add_argument("--img_size", type=int, default=80,
                         help="height of square image chip in pixels [default:80]")
+    parser.add_argument("--validation_size", type=float, default=0.0,
+                        help="size of validation set if not using k-fold [default:0.0]")
 
     FLAGS = parser.parse_args()
 
@@ -192,6 +210,7 @@ if __name__ == "__main__":
     FOLDS = FLAGS.folds
     LEARNING_RATE = FLAGS.learning_rate
     IMG_SIZE = FLAGS.img_size
+    VALIDATION_SIZE = FLAGS.validation_size
 
     if NAME != DEFAULT_NAME:
         NAME = NAME + "_" + TIMESTAMP
