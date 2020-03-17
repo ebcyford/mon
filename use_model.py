@@ -12,7 +12,7 @@ import shapely
 import geopandas as gpd
 import numpy as np
 import tensorflow as tf
-from mon.utils import get_buffer, prep_chip, normalize
+from mon.infer import get_trees
 from rasterio.mask import mask
 from shapely import speedups
 from tqdm import tqdm
@@ -25,28 +25,10 @@ tf.get_logger().setLevel("INFO")
 
 
 def main():
-    trees['geometry'] = trees.apply(lambda x: x.geometry.buffer(get_buffer(x.Z, SPATIAL_RES)), axis=1)
-    trees['geometry'] = trees.envelope
-
-    tree_chips = []
-    for index, row in tqdm(trees.iterrows(), desc="Finding Trees...", total=len(trees)): 
-        coords = [shapely.geometry.mapping(row['geometry'])]
-        out_img, out_transform = mask(dataset=raster, shapes=coords, crop=True)
-        img_arr = prep_chip(out_img, IMG_SIZE)
-        tree_chips.append(img_arr)
-
-    tree_chips = np.array(tree_chips)
-    tree_chips = normalize(tree_chips)
-
-    print("Predicting species...")
-    classification = model.predict_classes(tree_chips, batch_size=128)
-    certainty = model.predict(tree_chips, batch_size=128)
-
-    trees['classification'] = classification
-    trees['certainty'] = certainty
+    trees_classified = get_trees(raster, trees, model)
 
     print("Writing to " + OUT_FILE)
-    trees.to_file(OUT_FILE)
+    trees_classified.to_file(OUT_FILE)
 
 
 if __name__ == "__main__":
