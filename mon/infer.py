@@ -6,7 +6,7 @@ from rasterio.mask import mask
 from shapely import speedups
 from tensorflow.keras.models import load_model
 from tqdm import tqdm
-from utils import prep_chip, get_buffer
+from mon.utils import prep_chip, get_buffer, normalize
 
 if (speedups.available):
     speedups.enable()
@@ -27,6 +27,30 @@ def get_spruce(raster, trees, model,
                model to be used for inference
         height_col: str, column name of height of tree 
     """
+
+    trees = get_trees(raster, trees, model, height_col)
+    
+    print("Finding Spruces...")
+    spruces = trees[trees["classification"] == 1]
+
+    return spruces
+
+def get_trees(raster, trees, model, height_col="Z"):
+    """Returns GeoPandas dataframe of bounding boxes of trees
+
+    Given a raster and tree centers corresponding to the raster, 
+    make a bounding box (as a function of tree height), and perform 
+    inference with given model on extracted image chip. Return the classification
+    and value, or probabibility that the chip is a spruce
+
+    Arguments: 
+        raster: rasterio.io.DatasetReader, rasteriod dataset of input raster
+        trees: GeoPandas dataframe, of tree centers
+        model: tensorflow.python.keras.saving.save_model.load.Sequential
+               model to be used for inference
+        height_col: str, column name of height of tree 
+    """
+
     model_input_img_size = model.get_input_shape_at(0)[1]
     spatial_res = raster.res[0]
 
@@ -39,15 +63,15 @@ def get_spruce(raster, trees, model,
         coords = [shapely.geometry.mapping(row["geometry"])]
         out_img, out_transform = mask(dataset=raster, shapes=coords, crop=True)
         img_arr = prep_chip(out_img, model_input_img_size)
+        img_arr = normalize(img_arr)
         tree_chips.append(img_arr)
 
     tree_chips = np.array(tree_chips)
 
     print("Predicting Species...")
-    predictions = model.predict_classes(tree_chips, batch_size=128)
+    classifications = model.predict_classes(tree_chips, batch_size=128)
+    predictions = model.predict(tree_chips, batch_size=128)
+    trees["classification"] = classifications
     trees["prediction"] = predictions
 
-    print("Finding Spruces...")
-    spruces = trees[trees["prediction"] == 1]
-
-    return spruces
+    return trees
