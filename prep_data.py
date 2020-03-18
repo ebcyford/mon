@@ -22,7 +22,7 @@ import h5py
 import os
 import numpy as np
 from tqdm import tqdm
-from mon.utils import prep_chip, make_square
+from mon.utils import prep_chip
 
 
 def augment(img):
@@ -67,12 +67,6 @@ def main():
 
                 # Get classification
                 img_class = datagroup.attrs['classification']
-
-                # Add padding if image is not a square
-                if (img_arr.shape[0] != img_arr.shape[1]):
-                    img_arr = make_square(img_arr)
-                else:
-                    img_arr = img_arr
 
                 # Augment 
                 imgs = augment(img_arr)
