@@ -99,7 +99,7 @@ def build_model(in_shape, learning_rate=0.0001):
     model.add(Flatten())
     model.add(Dense(128))
     model.add(Activation("relu"))
-    model.add(Dropout(0.3))
+    model.add(Dropout(0.4))
     
     model.add(Dense(1))
     model.add(Activation("sigmoid"))
@@ -151,7 +151,7 @@ def main():
                 model.save(save_file)
     else:
         log_path = os.path.join(LOG_DIR, NAME)
-        save_file = os.path.join(SAVE_DIR, "{}.model".format(NAME))
+        save_file = os.path.join(MODEL_DIR, "{}.model".format(NAME))
 
         print("Model File: " + save_file)
         print("Log Path: " + log_path)
@@ -188,8 +188,8 @@ if __name__ == "__main__":
                         help="name of model, timestamp appended")
     parser.add_argument("--batch_size", type=int, default=256, 
                         help="number of images to process in each batch [default:256]")
-    parser.add_argument("--epochs", type=int, default=12,
-                        help="number of epochs to train model [default:12]")
+    parser.add_argument("--epochs", type=int, default=10,
+                        help="number of epochs to train model [default:10]")
     parser.add_argument("--folds", type=int, default=10,
                         help="number of fold in k-fold cross validation [default:10]")
     parser.add_argument("--learning_rate", type=float, default=0.0001,
