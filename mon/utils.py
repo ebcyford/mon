@@ -26,7 +26,7 @@ def get_buffer(tree_height, spatial_res=0.1):
         tree_height: float
         spatial_res: float, ensure height and resolution are in the same units
     """
-    raw_buff = 0.025 * tree_height + 2
+    raw_buff = 0.1 * tree_height + 1
     return round(spatial_res * round(raw_buff/spatial_res),1)
     
 
