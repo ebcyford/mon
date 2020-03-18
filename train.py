@@ -83,11 +83,8 @@ def build_model(in_shape, learning_rate=0.0001):
                      input_shape=in_shape,
                      activation="relu",
                      padding="same"))
-    model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
-    model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
     model.add(MaxPooling2D(pool_size=(2,2)))
     
-    model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
     model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
     model.add(MaxPooling2D(pool_size=(2,2)))
 
@@ -97,9 +94,9 @@ def build_model(in_shape, learning_rate=0.0001):
     model.add(GlobalAveragePooling2D())
     
     model.add(Flatten())
-    model.add(Dense(128))
+    model.add(Dense(256))
     model.add(Activation("relu"))
-    model.add(Dropout(0.4))
+    model.add(Dropout(0.5))
     
     model.add(Dense(1))
     model.add(Activation("sigmoid"))
@@ -186,12 +183,12 @@ if __name__ == "__main__":
                         help="directory to save models [default:models]")
     parser.add_argument("--name", type=str, default=DEFAULT_NAME,
                         help="name of model, timestamp appended")
-    parser.add_argument("--batch_size", type=int, default=256, 
-                        help="number of images to process in each batch [default:256]")
-    parser.add_argument("--epochs", type=int, default=10,
-                        help="number of epochs to train model [default:10]")
-    parser.add_argument("--folds", type=int, default=10,
-                        help="number of fold in k-fold cross validation [default:10]")
+    parser.add_argument("--batch_size", type=int, default=512, 
+                        help="number of images to process in each batch [default:512]")
+    parser.add_argument("--epochs", type=int, default=25,
+                        help="number of epochs to train model [default:25]")
+    parser.add_argument("--folds", type=int, default=5,
+                        help="number of fold in k-fold cross validation [default:5]")
     parser.add_argument("--learning_rate", type=float, default=0.0001,
                         help="learning rate for ADAM optimizer [default:0.0001]")
     parser.add_argument("--img_size", type=int, default=80,
