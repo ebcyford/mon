@@ -7,7 +7,7 @@ Data for this project were collected by the [National Ecological Observatory Net
 
 The area of interest is the tile with lower left corner at 275000 Easting and 3941000 Northing in the UTM Zone 17N.
 
-The LiDAR file was preprocessed in ArcGIS Pro. `LAS Dataset to Raster` tool was used on ground and non-ground points to create the Digital Terrain Model (DTM) and Digital Surface Model (DSM) respectively. The DSM was subtracted from the DTM to create the Canopy Height Model (CHM).
+The LiDAR file was preprocessed in ArcGIS Pro. `LAS Dataset to Raster` tool was used on ground and non-ground points to create the Digital Terrain Model (DTM) and Digital Surface Model (DSM) respectively. The DTM was subtracted from the DSM to create the Canopy Height Model (CHM).
 
 This CHM was then used in R with the [lidR](https://cran.r-project.org/web/packages/lidR/lidR.pdf) package to find tree centers using a dynamic, circular window with a local maxima function. The CHM was first passed through a gaussian filter with sigma = 0.5 and window size 3 to soften elevations. The local maxima function was then applied to the smooth CHM using a window function (`y = 0.1*x + 1`), where x is the value of the raster pixel. The tree centers were saved as a shapefile.
 
