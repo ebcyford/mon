@@ -15,7 +15,7 @@ import tensorflow as tf
 from datetime import datetime
 from mon.utils import prep_chip, normalize
 from sklearn.model_selection import KFold
-from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, \
     Conv2D, MaxPooling2D, GlobalAveragePooling2D
@@ -83,8 +83,11 @@ def build_model(in_shape, learning_rate=0.0001):
                      input_shape=in_shape,
                      activation="relu",
                      padding="same"))
+    model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
+    model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
     model.add(MaxPooling2D(pool_size=(2,2)))
     
+    model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
     model.add(Conv2D(64, (3, 3), activation="relu", padding="same"))
     model.add(MaxPooling2D(pool_size=(2,2)))
 
@@ -118,6 +121,9 @@ def main():
     print("Retrieving Data...")
     features, labels = get_data(IN_FILE, img_size=IMG_SIZE)
 
+    # Instantiate early stopping
+    early_stop = EarlyStopping(monitor="val_loss", patience=2, restore_best_weights=True)
+
     if (VALIDATION_SIZE == 0.0):
         # Cross validation
         cross_val = KFold(n_splits=FOLDS)
@@ -137,6 +143,7 @@ def main():
                 print("Log Path: " + log_path)
                 
                 tensorboard = TensorBoard(log_dir=log_path, histogram_freq=1)
+                checkpoint = ModelCheckpoint(save_file, monitor="val_loss", verbose=1, save_best_only=True)
                 
                 model = build_model(in_shape=X_train.shape[1:])
                 model.fit(x=X_train, y=y_train,
@@ -144,8 +151,6 @@ def main():
                         epochs=EPOCHS,
                         validation_data=(X_test, y_test),
                         callbacks=[tensorboard])
-                
-                model.save(save_file)
     else:
         log_path = os.path.join(LOG_DIR, NAME)
         save_file = os.path.join(MODEL_DIR, "{}.model".format(NAME))
@@ -154,13 +159,14 @@ def main():
         print("Log Path: " + log_path)
 
         tensorboard = TensorBoard(log_dir=log_path, histogram_freq=1)
+        checkpoint = ModelCheckpoint(save_file, monitor="val_loss", verbose=1, save_best_only=True)
+
         model = build_model(in_shape=features.shape[1:])
         model.fit(x=features, y=labels,
                   batch_size=BATCH_SIZE, 
                   epochs=EPOCHS,
                   validation_split=VALIDATION_SIZE,
                   callbacks=[tensorboard])
-        model.save(save_file)
 
 
 if __name__ == "__main__":
@@ -183,10 +189,10 @@ if __name__ == "__main__":
                         help="directory to save models [default:models]")
     parser.add_argument("--name", type=str, default=DEFAULT_NAME,
                         help="name of model, timestamp appended")
-    parser.add_argument("--batch_size", type=int, default=512, 
-                        help="number of images to process in each batch [default:512]")
-    parser.add_argument("--epochs", type=int, default=25,
-                        help="number of epochs to train model [default:25]")
+    parser.add_argument("--batch_size", type=int, default=256, 
+                        help="number of images to process in each batch [default:256]")
+    parser.add_argument("--epochs", type=int, default=20,
+                        help="number of epochs to train model [default:20]")
     parser.add_argument("--folds", type=int, default=5,
                         help="number of fold in k-fold cross validation [default:5]")
     parser.add_argument("--learning_rate", type=float, default=0.0001,
