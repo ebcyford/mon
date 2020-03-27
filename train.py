@@ -150,7 +150,7 @@ def main():
                         batch_size=BATCH_SIZE,
                         epochs=EPOCHS,
                         validation_data=(X_test, y_test),
-                        callbacks=[tensorboard])
+                        callbacks=[tensorboard, early_stop, checkpoint])
     else:
         log_path = os.path.join(LOG_DIR, NAME)
         save_file = os.path.join(MODEL_DIR, "{}.model".format(NAME))
@@ -166,7 +166,7 @@ def main():
                   batch_size=BATCH_SIZE, 
                   epochs=EPOCHS,
                   validation_split=VALIDATION_SIZE,
-                  callbacks=[tensorboard])
+                  callbacks=[tensorboard, early_stop, checkpoint])
 
 
 if __name__ == "__main__":
