@@ -2,7 +2,7 @@
 
 Take an HDF5 file full of image chips and prepare them for training on 
 neural network. Images rotated 90, 180, and 270 degrees, flipped vertically 
-and horizontally for each orientation, increasing sample size seven-fold.
+and horizontally for each orientation, increasing sample size eight-fold.
 Transformed image chips, as well as their originals, are saved in 
 specified output file.
 
